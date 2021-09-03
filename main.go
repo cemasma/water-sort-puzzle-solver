@@ -1,9 +1,22 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 func main() {
+
+	startDate := time.Now()
 	game := NewGame("game.json")
 
-	fmt.Println(game.solve(game.Bottles))
+	result := game.solve()
+	endDate := time.Now()
+
+	diff := endDate.Sub(startDate)
+	fmt.Printf("Solution: %v\nduration: %s\n", result.Bottles, diff.String())
+
+	for _, v := range result.Moves {
+		fmt.Println(v)
+	}
 }

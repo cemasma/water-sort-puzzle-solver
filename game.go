@@ -1,71 +1,89 @@
 package main
 
 import (
+	"bytes"
+	"encoding/gob"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"strconv"
 )
 
 const EMPTY = "EMPTY"
 
+type bottlesArray [][]string
+
 type Game struct {
-	Bottles [][]string `json:"bottles"`
+	Bottles bottlesArray `json:"bottles"`
 }
 
-func (game Game) solve(bottles [][]string) [][]string {
-	queueState := make([][][]string, 0)
-	queueState = append(queueState, bottles)
+type Flow struct {
+	Bottles bottlesArray
+	Moves []string
+}
 
-	visited := make([][][]string, 0)
-	solvedState := make([][]string, 0)
+func newFlow(bottles bottlesArray) Flow {
+	moves := make([]string, 0)
+
+	return Flow{
+		Moves: moves,
+		Bottles: bottles,
+	}
+}
+
+func (game Game) solve() Flow {
+	queueState := make([]Flow, 0)
+	queueState = append(queueState, newFlow(game.Bottles))
+
+	visited := make(map[string]bool)
+	var solvedState Flow
 
 	for len(queueState) != 0 {
-		if len(queueState) % 1000 > 999 {
-			fmt.Println(len(queueState))
-		}
-
 		currentState := queueState[len(queueState) - 1]
 		queueState = queueState[:len(queueState) - 1]
 
-		if isAlreadySolved(visited, currentState) {
+		if visited[hashBottles(currentState.Bottles)] {
 			continue
 		}
 
-		visited = append(visited, getCopyOfSituation(currentState))
+		visited[hashBottles(currentState.Bottles)] = true
 
-		if isDone(currentState) {
+		if isDone(currentState.Bottles) {
 			solvedState = currentState
 			break
 		}
 
-		for i := 0; i < len(currentState); i++ {
-			for j := 0; j < len(currentState); j++ {
+		for i := 0; i < len(currentState.Bottles); i++ {
+
+			bottle1 := currentState.Bottles[i]
+			if isBottleDone(bottle1) || bottle1[0] == EMPTY {
+				continue
+			}
+
+			for j := 0; j < len(currentState.Bottles); j++ {
 				if i == j {
 					continue
 				}
 
-				bottle1 := currentState[i]
-				bottle2 := currentState[j]
+				bottle2 := currentState.Bottles[j]
 
-				if isBottleDone(bottle1) {
+				if bottle2[len(bottle2) - 1] != EMPTY {
 					continue
 				}
 
 				if isMovePossible(bottle1, bottle2) {
-					cs := getCopyOfSituation(currentState)
+					cs := getCopyOfSituation(currentState.Bottles)
 					makeMove(&cs, i, j)
+					flow := newFlow(getCopyOfSituation(cs))
+					newMovesArr := make([]string, len(currentState.Moves))
+					copy(newMovesArr, currentState.Moves)
+					flow.Moves = append(newMovesArr, strconv.Itoa(i) + " -> " + strconv.Itoa(j))
 
 					if !isAlreadySolved(queueState, cs) {
-						queueState = append(queueState, getCopyOfSituation(cs))
+						queueState = append(queueState, flow)
 					}
 				}
 			}
 		}
-	}
-
-	for _, v := range visited {
-		fmt.Println(isDone(v))
 	}
 
 	return solvedState
@@ -87,8 +105,8 @@ func isBottleDone(bottle []string) bool {
 	return true
 }
 
-func getCopyOfSituation(situation [][]string) [][]string {
-	copySlice := make([][]string, len(situation))
+func getCopyOfSituation(situation bottlesArray) bottlesArray {
+	copySlice := make(bottlesArray, len(situation))
 	for index, val := range situation {
 		newArr := make([]string, len(val))
 		copy(newArr, val)
@@ -98,10 +116,10 @@ func getCopyOfSituation(situation [][]string) [][]string {
 	return copySlice
 }
 
-func isAlreadySolved(solutions [][][]string, bottles [][]string) bool {
+func isAlreadySolved(solutions []Flow, bottles bottlesArray) bool {
 	for _, val := range solutions {
-		s1 := getStringifiedBottles(val)
-		s2 := getStringifiedBottles(bottles)
+		s1 := hashBottles(val.Bottles)
+		s2 := hashBottles(bottles)
 
 		if s1 == s2 {
 			return true
@@ -111,17 +129,13 @@ func isAlreadySolved(solutions [][][]string, bottles [][]string) bool {
 	return false
 }
 
-func getStringifiedBottles(bottles [][]string) (str string) {
-	for bottleIndex, bottle := range bottles {
-		for colorIndex, color := range bottle {
-			str += "|" + strconv.Itoa(bottleIndex) + ":" + strconv.Itoa(colorIndex) + ":" + color + "|"
-		}
-	}
-
-	return str
+func hashBottles(bottles bottlesArray) string {
+	var b bytes.Buffer
+	gob.NewEncoder(&b).Encode(bottles)
+	return string(b.Bytes())
 }
 
-func makeMove(currentSituation *[][]string, i, j int) {
+func makeMove(currentSituation *bottlesArray, i, j int) {
 	color, index := getTopColorOfBottle((*currentSituation)[i])
 	emptyIndex := getBottomEmptyPlace((*currentSituation)[j])
 
@@ -145,7 +159,7 @@ func isMovePossible(bottle1, bottle2 []string) bool {
 }
 
 func getBottomEmptyPlace(bottle []string) (index int) {
-	for i, _ := range bottle {
+	for i := range bottle {
 		if bottle[i] == EMPTY {
 			index = i
 			return
@@ -170,11 +184,7 @@ func getTopColorOfBottle(bottle []string) (color string, index int) {
 	return
 }
 
-func IsDone(bottles [][]string) bool {
-	return isDone(bottles)
-}
-
-func isDone(bottles [][]string) bool {
+func isDone(bottles bottlesArray) bool {
 	isDone := true
 	for _, bottle := range bottles {
 		var previousColor string
