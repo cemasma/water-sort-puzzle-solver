@@ -151,6 +151,10 @@ func isMovePossible(bottle1, bottle2 []string) bool {
 		return false
 	}
 
+	if topColorBottle1 == bottle1[0] && bottle2[0] == EMPTY {
+		return false
+	}
+
 	if topColorBottle1 != topColorBottle2 && topColorBottle2 != EMPTY {
 		return false
 	}
