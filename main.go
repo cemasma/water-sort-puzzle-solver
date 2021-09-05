@@ -8,7 +8,7 @@ import (
 func main() {
 
 	startDate := time.Now()
-	game := NewGame("639.json")
+	game := NewGame("647.json")
 
 	result := game.solve()
 	endDate := time.Now()

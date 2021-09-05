@@ -141,6 +141,10 @@ func makeMove(currentSituation *bottlesArray, i, j int) {
 
 	(*currentSituation)[i][index] = EMPTY
 	(*currentSituation)[j][emptyIndex] = color
+
+	if isMovePossible((*currentSituation)[i], (*currentSituation)[j]) {
+		makeMove(currentSituation, i, j)
+	}
 }
 
 func isMovePossible(bottle1, bottle2 []string) bool {
