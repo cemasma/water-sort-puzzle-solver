@@ -1,6 +1,18 @@
 # water-sort-puzzle-solver
 Water sort puzzle is a game that player should sort the same colors into bottles and this project provides an optimal solution for given problem using DFS algorithm.
 
+# Usage
+
+1. First you need to clone project.
+
+```git clone https://github.com/cemasma/water-sort-puzzle-solver.git```
+2. Build the project.
+
+```go build .```
+3. And it is ready to run.
+
+```water-sort-puzzle-solver --file filename```
+
 # How it works?
 Solver parses the input json file and after that starts to simulate game mechanics and retries variants by implementation of DFS algorithm until find a solution. You can find example json mapping at below.
 
