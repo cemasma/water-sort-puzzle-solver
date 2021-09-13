@@ -6,9 +6,11 @@ Water sort puzzle is a game that player should sort the same colors into bottles
 1. First you need to clone project.
 
 ```git clone https://github.com/cemasma/water-sort-puzzle-solver.git```
+
 2. Build the project.
 
 ```go build .```
+
 3. And it is ready to run.
 
 ```water-sort-puzzle-solver --file filename```
