@@ -18,14 +18,14 @@ type Game struct {
 
 type Flow struct {
 	Bottles bottlesArray
-	Moves []string
+	Moves   []string
 }
 
 func newFlow(bottles bottlesArray) Flow {
 	moves := make([]string, 0)
 
 	return Flow{
-		Moves: moves,
+		Moves:   moves,
 		Bottles: bottles,
 	}
 }
@@ -38,8 +38,8 @@ func (game Game) solve() Flow {
 	var solvedState Flow
 
 	for len(queueState) != 0 {
-		currentState := queueState[len(queueState) - 1]
-		queueState = queueState[:len(queueState) - 1]
+		currentState := queueState[len(queueState)-1]
+		queueState = queueState[:len(queueState)-1]
 
 		if visited[hashBottles(currentState.Bottles)] {
 			continue
@@ -66,7 +66,7 @@ func (game Game) solve() Flow {
 
 				bottle2 := currentState.Bottles[j]
 
-				if bottle2[len(bottle2) - 1] != EMPTY {
+				if bottle2[len(bottle2)-1] != EMPTY {
 					continue
 				}
 
@@ -76,7 +76,7 @@ func (game Game) solve() Flow {
 					flow := newFlow(getCopyOfSituation(cs))
 					newMovesArr := make([]string, len(currentState.Moves))
 					copy(newMovesArr, currentState.Moves)
-					flow.Moves = append(newMovesArr, strconv.Itoa(i) + " -> " + strconv.Itoa(j))
+					flow.Moves = append(newMovesArr, strconv.Itoa(i)+" -> "+strconv.Itoa(j))
 
 					if !isAlreadySolved(queueState, cs) {
 						queueState = append(queueState, flow)
@@ -150,6 +150,24 @@ func makeMove(currentSituation *bottlesArray, i, j int) {
 func isMovePossible(bottle1, bottle2 []string) bool {
 	topColorBottle1, _ := getTopColorOfBottle(bottle1)
 	topColorBottle2, _ := getTopColorOfBottle(bottle2)
+
+	emptySpacesBottle2 := 0
+	for i := 0; i < len(bottle2); i++ {
+		if bottle2[i] == EMPTY {
+			emptySpacesBottle2++
+		}
+	}
+
+	liquidBottle1 := 0
+	for i := 0; i < len(bottle1); i++ {
+		if bottle1[i] == topColorBottle1 {
+			liquidBottle1++
+		}
+	}
+
+	if liquidBottle1 > emptySpacesBottle2 {
+		return false
+	}
 
 	if bottle2[len(bottle2)-1] != EMPTY {
 		return false
